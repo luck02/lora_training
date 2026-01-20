@@ -1,0 +1,134 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+.Python
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  - https://pyinstaller.readthedocs.io/en/latest/usage.html#cmdoption-onefile
+*.onefile-build-dir
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.mypy_cache/
+.pytest_cache/
+.pytest_cache/**
+.linter_cache/
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+env/
+ENV/bin/activate
+env/bin/activate
+.envrc
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Data and model files
+data/**/raw/*
+data/**/processed/*
+output/**
+adapters/**
+
+# Cache
+.ruff_cache/
+pytest_cache/
+.mypy_cache/
+.jedi/
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+
+# Logs
+logs/
+*.log
+
+# Configuration
+config/*.yaml.bak
+config/*.yaml~
+
+# Test artifacts
+tests/__pycache__/
+tests/.pytest_cache/
+
+# Python-specific
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.coverage
+.coverage.*
+
+# Model checkpoints (if using Hugging Face transformers)
+*.ckpt
+*.bin
+*.pt
+*.pth
+*.safetensors
+
+# Dataset artifacts
+data/**/raw/*.jsonl
+data/**/processed/*.jsonl
+
+# Virtual environment (if not using .venv)
+venv/
+env/
+virtualenv/

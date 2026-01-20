@@ -1,0 +1,25 @@
+domain: avorion
+description: "Avorion game modding with Lua"
+
+data:
+  train_file: "data/avorion/train.jsonl"
+  eval_file: "data/avorion/eval.jsonl"
+
+model:
+  name: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  load_in_4bit: true
+
+output:
+  adapter_dir: "adapters/avorion-lora"
+
+prompt_template: |
+  ### Instruction:
+  {instruction}
+
+  ### Response:
+  {output}
+
+system_prompt: "You are an expert Avorion game modder specializing in Lua scripting for ship systems, sector generation, and game mechanics."
+
+training:
+  num_epochs: 5  # More epochs for smaller dataset

@@ -1,0 +1,6 @@
+{
+  "success": true,
+  "response_text": "```json\n{\n  \"error\": \"API_ERROR\",\n  \"message\": \"An error occurred while processing your request\",\n  \"retry_after\": 30\n}\n```",
+  "model": "claude-sonnet-4-5-20250929",
+  "timestamp": 1768865723.120409
+}

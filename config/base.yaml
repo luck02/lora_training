@@ -1,0 +1,30 @@
+# Shared training defaults - override in domain configs
+training:
+  num_epochs: 3
+  batch_size: 2
+  gradient_accumulation: 4
+  learning_rate: 2e-4
+  warmup_ratio: 0.03
+  max_seq_length: 2048
+  bf16: true
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+model:
+  name: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  load_in_4bit: true
+
+output:
+  save_steps: 100
+  logging_steps: 10

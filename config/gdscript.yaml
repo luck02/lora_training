@@ -1,0 +1,25 @@
+domain: gdscript
+description: "Godot 4.x game development with GDScript"
+
+data:
+  train_file: "data/gdscript/train.jsonl"
+  eval_file: "data/gdscript/eval.jsonl"
+
+model:
+  name: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  load_in_4bit: true
+
+output:
+  adapter_dir: "adapters/gdscript-lora"
+
+prompt_template: |
+  ### Instruction:
+  {instruction}
+
+  ### Response:
+  {output}
+
+system_prompt: "You are an expert Godot 4 game developer specializing in GDScript, node systems, signals, and game architecture."
+
+training:
+  num_epochs: 3
