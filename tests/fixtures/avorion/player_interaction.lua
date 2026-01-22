@@ -1,51 +1,26 @@
--- Player interaction and callback handling in Avorion
-function onPlayerJoin(player)
-    print("Player joined: " .. player:getTitle())
-    
-    -- Set up initial ship
-    local ship = player:getShip()
-    if ship then
-        ship:setHull(100)
-        ship:setShield(50)
-    end
-    
-    -- Send welcome message
-    player:sendChatMessage("Welcome to the server!")
+-- Player connection handler
+function Player.onConnect(player)
+    print("Player connected: " .. player:getName())
+
+    -- Initialize player data
+    player:setAttribute("health", 100)
+    player:setAttribute("energy", 50)
 end
 
-function onPlayerCommand(player, command, args)
-    if command == "spawn" then
-        local entityType = args[1] or "Ship"
-        local position = player:getPosition()
-        
-        local entity = player:getSector():createEntity(entityType)
-        entity:setPosition(position)
-        entity:setTitle(player:getTitle() .. "'s " .. entityType)
-        
-        return entity
-    elseif command == "info" then
-        local ship = player:getShip()
-        if ship then
-            local info = {
-                hull = ship:getHull(),
-                shield = ship:getShield(),
-                position = ship:getPosition(),
-                faction = ship:getFaction()
-            }
-            return info
-        end
-    end
-    
-    return nil
+-- Player disconnect handler
+function Player.onDisconnect(player)
+    print("Player disconnected: " .. player:getName())
+
+    -- Save player data
+    savePlayerData(player)
 end
 
-function registerPlayerCallbacks()
-    -- Register callbacks for player events
-    Player:onJoin(function(player)
-        onPlayerJoin(player)
-    end)
-    
-    Player:onCommand(function(player, command, args)
-        return onPlayerCommand(player, command, args)
-    end)
+-- Player command handler
+function Player.onCommand(player, command, args)
+    if command == "heal" then
+        player:setAttribute("health", 100)
+        player:sendChatMessage("You have been healed!")
+    elseif command == "spawn_ship" then
+        spawnPlayerShip(player, args.ship_type)
+    end
 end

@@ -1,59 +1,182 @@
-# LoRA Fine-tuning Guide for Qwen3-Coder-30B-A3B-Instruct
+# LoRA Training Pipeline
 
-A comprehensive pipeline for LoRA fine-tuning of Qwen models, supporting two specialized adapters:
+A production-ready pipeline for training domain-specific LoRA/DoRA adapters on large language models. Currently supports **Qwen3** models with plans for unified multi-domain training.
 
-- **GDScript LoRA**: For Godot Engine game development with GDScript scripting
-- **Avorion LoRA**: For Avorion Lua scripting for game modding
+## Features
 
-## Core Workflow
-1. **Dataset Generation**: Reverse-prompting with Anthropic Batch API to create Q&A pairs from source code
-2. **Quality Filtering**: Automated checks for length, syntax validity, and deduplication
-3. **Training**: Separate LoRA training jobs using PEFT, bitsandbytes with hardware-specific optimizations
-4. **Deployment**: Merge adapters with base model or convert to GGUF for Ollama integration
+- **Reverse-prompting dataset generation** using Anthropic's Claude API
+- **QLoRA/DoRA training** with PEFT, bitsandbytes, and TRL
+- **Multi-domain support** for game development scripting languages
+- **Quality filtering** (syntax validation, length checks, deduplication)
+- **Configurable training** via YAML inheritance system
+- **vLLM deployment** support with FP8 quantization (planned)
+
+## Supported Domains
+
+| Domain | Language | Description |
+|--------|----------|-------------|
+| **Avorion** | Lua | Game modding for ship systems, sectors, factions |
+| **Godot** | GDScript | Game development with Godot Engine |
+| **FLECS** | C/C++ | Entity Component System patterns (planned) |
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- CUDA-capable GPU (for training)
+- Anthropic API key (for dataset generation)
+
+### Installation
+
+```bash
+git clone https://github.com/yourusername/lora-training.git
+cd lora-training
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Generate Training Data
+
+```bash
+# Set your Anthropic API key
+export ANTHROPIC_API_KEY="your-key-here"
+
+# Place raw code samples in data/<domain>/raw/
+# Then generate training pairs:
+python scripts/generate_dataset.py --domain avorion
+```
+
+### Train an Adapter
+
+```bash
+python scripts/train.py --config config/avorion.yaml
+```
+
+### Merge and Deploy
+
+```bash
+# Merge adapter with base model
+python scripts/merge.py --config config/avorion.yaml --output ./merged-model
+
+# Convert for vLLM (optional)
+python scripts/convert_vllm.py --model ./merged-model --name my-model --config config/avorion.yaml
+```
+
+## Project Structure
+
+```
+lora-training/
+├── config/                 # Training configurations
+│   ├── base.yaml          # Shared defaults
+│   ├── avorion.yaml       # Avorion-specific config
+│   └── gdscript.yaml      # GDScript-specific config
+├── data/                   # Training data
+│   └── <domain>/
+│       ├── raw/           # Source code files
+│       └── train.jsonl    # Generated training pairs
+├── scripts/                # Core pipeline scripts
+├── tests/                  # Test suite
+├── adapters/               # Output: trained adapters
+└── ideas/                  # Planning documents
+```
 
 ## Configuration
-- Base config (`config/base.yaml`) with shared training defaults
-- Domain configs (`config/avorion.yaml`, `config/gdscript.yaml`) for adapter-specific settings
-- System prompts tailored to each domain's workflow
 
-## Test Status
-All tests are now passing (31 passed, 1 skipped). The skipped test relates to GDScript fixtures which are not currently required as we focus on Avorion development.
+Training uses a YAML inheritance system:
 
-## Typical Commands
+```yaml
+# config/base.yaml - shared defaults
+model:
+  name: "Qwen/Qwen3-Coder-30B-A3B-Instruct"
+  load_in_4bit: true
+
+training:
+  max_seq_length: 2048
+  num_epochs: 3
+  batch_size: 2
+  learning_rate: 2e-4
+
+lora:
+  r: 16
+  alpha: 32
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+```
+
+Domain configs override base settings:
+
+```yaml
+# config/avorion.yaml
+domain: avorion
+training:
+  num_epochs: 5  # More epochs for smaller dataset
+```
+
+## Testing
+
 ```bash
-# Setup
-mkdir -p lora-training/{config,data/avorion/raw,data/gdscript/raw,scripts,adapters,output}
-cd lora-training
-pip install -r requirements.txt
+# Run all tests
+python -m pytest tests/ -v
 
-# Generate datasets (requires raw code samples in data/<domain>/raw directories)
-python scripts/generate_dataset.py --domain avorion
-python scripts/generate_dataset.py --domain gdscript
+# Run with coverage
+make test
 
-# Train adapters
-python scripts/train.py --config config/avorion.yaml
-python scripts/train.py --config config/gdscript.yaml
-
-# Merge and deploy (optional)
-python scripts/merge.py --config config/avorion.yaml --output ./avorion-merged
-python scripts/convert_ollama.py --model ./avorion-merged --name avorion-coder --config config/avorion.yaml
+# Run quality checks (lint + tests + coverage)
+make check
 ```
 
-## Generating Fixture Data
-To generate training data, you need to provide raw code samples in the respective domain directories:
-- Avorion: Place Lua code samples in `data/avorion/raw/`
-- GDScript: Place GDScript code samples in `data/gdscript/raw/`
+## Quality Standards
 
-Then run the dataset generation script:
-```bash
-python scripts/generate_dataset.py --domain avorion
-python scripts/generate_dataset.py --domain gdscript
-```
+- **Linting**: Zero ruff errors
+- **Coverage**: 80% minimum
+- **Complexity**: McCabe <= 15 per function
 
-This will create training JSONL files in `data/<domain>/train.jsonl` which are used for LoRA training.
-```
+Run `make check` before committing.
 
-## Notes
-- Training time varies with dataset size and hardware (≈2-12 hours)
-- Quality filtering prevents noisy data from degrading model performance
-- Sample outputs are saved in `output/` with domain-specific adapter directories
+## Roadmap
+
+See `ideas/qwen3-80b-unified-adapter-plan.md` for the full architectural plan.
+
+### Current (v0.1)
+- [x] Separate adapters per domain
+- [x] Local QLoRA training on Qwen3-30B
+- [x] Anthropic API dataset generation
+- [x] Basic quality filtering
+
+### Planned (v0.2)
+- [ ] Unified multi-domain adapter
+- [ ] Cloud training support (8x H100)
+- [ ] DoRA (Weight-Decomposed LoRA)
+- [ ] 64k context length
+- [ ] FLECS ECS domain
+- [ ] GDExtension C++ support
+- [ ] FP8 quantization
+- [ ] HuggingFace publication
+
+## Contributing
+
+See `CONTRIBUTING.md` for development guidelines.
+
+1. Fork the repository
+2. Create a feature branch
+3. Run `make check` before committing
+4. Submit a pull request
+
+## License
+
+[MIT License](LICENSE) (to be added)
+
+## Acknowledgments
+
+- [Qwen](https://github.com/QwenLM/Qwen) for the base models
+- [PEFT](https://github.com/huggingface/peft) for parameter-efficient fine-tuning
+- [TRL](https://github.com/huggingface/trl) for training utilities
+- [Anthropic](https://anthropic.com) for Claude API (dataset generation)

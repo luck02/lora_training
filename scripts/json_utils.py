@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-JSON parsing utilities for handling Claude API responses.
-This file contains utility functions for parsing JSON from Claude API responses.
+JSON parsing utilities for handling Claude API responses
 """
 
 import json
 import re
+
 
 def safe_json_parse(response_text):
     """
@@ -42,6 +42,7 @@ def safe_json_parse(response_text):
                 response_text = extracted
 
     # Try to fix common escaped quote issues that cause parsing problems
+    # The main issue appears to be with \" inside string values where it's not properly escaped
     try:
         return json.loads(response_text)
     except:
@@ -51,9 +52,9 @@ def safe_json_parse(response_text):
     try:
         # Replace malformed escaped quotes - this fixes the specific case mentioned
         # where there are \" that should be just "
-        fixed_text = response_text.replace('\""', '"')  # Replace \" with "
-        fixed_text = fixed_text.replace('\\\"', '\"')  # Fix double escapes
-        fixed_text = fixed_text.replace('\\"', '"')  # Fix other escape issues
+        fixed_text = response_text.replace('\\""', '"')  # Replace \" with "
+        fixed_text = fixed_text.replace('\\\\\\"', '\\"')  # Fix double escapes
+        fixed_text = fixed_text.replace('\\\\"', '"')  # Fix other escape issues
         return json.loads(fixed_text)
     except:
         pass
@@ -78,7 +79,6 @@ def safe_json_parse(response_text):
                     break
 
         if start_pos != -1 and end_pos != -1:
-            # Extract the JSON structure
             array_content = response_text[start_pos : end_pos + 1]
             return json.loads(array_content)
     except:
@@ -166,9 +166,8 @@ if __name__ == "__main__":
     test_cases = [
         '{"test": "value"}',
         '```json\n{"test": "value"}\n```',
-        'Some text\n```json\n{"test": "value"}\n```
-More text',
-        '{"test": "value with \"quotes\""}',
+        'Some text\n```json\n{"test": "value"}\n```\nMore text',
+        '{"test": "value with \\"quotes\\""}',
     ]
 
     for i, test in enumerate(test_cases):

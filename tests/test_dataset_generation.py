@@ -31,6 +31,10 @@ def test_mock_batch_request_preparation():
     assert mock_samples[0]["content"] != ""
     assert mock_samples[1]["content"] != ""
 
+    # Test that we can access file paths
+    assert mock_samples[0]["path"] != ""
+    assert mock_samples[1]["path"] != ""
+
 
 def test_prompt_template_application():
     """Test that prompt templates are correctly applied to training data"""
@@ -41,19 +45,14 @@ def test_prompt_template_application():
         "domain": "avorion",
     }
 
-    # Test with Avorion template
-    avorion_template = """### Instruction:
-{instruction}
+    # Test with Avorion template from prompts module
+    from scripts.prompts import AVORION_PROMPT_TEMPLATE
 
-### Response:
-{output}"""
-
-    formatted = avorion_template.format(**training_example)
-
-    assert "Write a function to spawn a ship" in formatted
-    assert "function spawnShip()" in formatted
-    assert "### Instruction:" in formatted
-    assert "### Response:" in formatted
+    # Test that template contains expected elements
+    assert "{code_sample}" in AVORION_PROMPT_TEMPLATE
+    assert "{file_path}" in AVORION_PROMPT_TEMPLATE
+    assert "Context:" in AVORION_PROMPT_TEMPLATE
+    assert "Avorion" in AVORION_PROMPT_TEMPLATE
 
 
 def test_mock_batch_processing():
