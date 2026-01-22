@@ -35,7 +35,8 @@ services:
 
 **Key flags:**
 - `--default-chat-template-kwargs '{"enable_thinking": false}'` - Disables Qwen3-Next thinking mode (prevents `<think>` blocks and empty content responses)
-- `./moe-configs` volume mount - For self-tuned MoE kernel configs (create dir first: `mkdir -p moe-configs`)
+- `./moe-configs` volume mount - Self-tuned MoE kernel configs for GB10:
+  - `E=512,N=512,device_name=NVIDIA_GB10,block_shape=[128,128].json` (tuned Jan 2026, ~6 hours)
 
 ### Performance Results
 
@@ -93,16 +94,23 @@ services:
 
 ### Step 2: Run the MoE benchmark tuner
 
+> [!NOTE]
+> The `vllm.benchmarks.kernels` module is NOT installed in the pip package - it's only in the vLLM source repo. You must clone the repo and run the script directly.
+
 ```bash
 # Stop the server first
 docker compose down
+
+# Clone vLLM source (just need the benchmarks folder)
+git clone --depth 1 https://github.com/vllm-project/vllm.git /tmp/vllm-src
 
 # Run tuning (this will take a while - hours for full tune)
 docker run --rm --gpus all \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   -v $(pwd)/moe-configs:/moe-configs \
+  -v /tmp/vllm-src/benchmarks:/benchmarks \
   vllm-node \
-  python3 -m vllm.benchmarks.kernels.benchmark_moe \
+  python3 /benchmarks/kernels/benchmark_moe.py \
     --model Qwen/Qwen3-Next-80B-A3B-Instruct-FP8 \
     --tp-size 1 \
     --dtype auto \
